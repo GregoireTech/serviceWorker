@@ -13,6 +13,7 @@ class MonthData {
         this.overring = Math.round(Math.abs(monthData.overring));
         this.month = parseInt(monthData.month_year.split("_")[0]);
         this.year = parseInt(monthData.month_year.split("_")[1]);
+        this.objective = null;
     }
 
     calculateKPIs(dictionary) {
@@ -36,6 +37,7 @@ class MonthData {
         if (this.month <= 9) compMonthYear = "0" + compMonthYear;
         if (dictionary[this.compId][compMonthYear]) {
             const compData = dictionary[this.compId][compMonthYear];
+            this.objective = compData.sales;
             if (compData.sales > 0) this.salesGrowth = Math.round((this.sales / compData.sales - 1) * 1000) / 10;
             if (compData.catering > 0) this.cateringGrowth = Math.round((this.catering / compData.catering - 1) * 1000) / 10;
             if (this.salesGrowth > 0) {
@@ -98,13 +100,14 @@ class MonthData {
         statement += ` sales, sales_growth, sales_ytd,`;
         statement += ` catering, catering_growth, catering_ytd,`;
         statement += ` food_cost, food_cost_p, labor_cost, labor_cost_p,`;
-        statement += ` sampling, overring, bonus, bonus_dm)`;
+        statement += ` sampling, overring, bonus, bonus_dm, month_obj)`;
         statement += ` VALUES (`;
         statement += ` 1, ${this.compId}, ${this.month}, ${this.year},`;
         statement += ` ${this.sales}, ${this.salesGrowth}, ${this.salesYTD},`;
         statement += ` ${this.catering}, ${this.cateringGrowth}, ${this.cateringYTD},`;
         statement += ` ${this.foodCost}, ${this.foodCostP}, ${this.laborCost}, ${this.laborCostP},`;
-        statement += ` ${this.sampling}, ${this.overring}, ${this.bonus}, ${this.bonusDM}`;
+        statement += ` ${this.sampling}, ${this.overring}, ${this.bonus}, ${this.bonusDM},`;
+        statement += ` ${this.objective}`;
         statement += ` ); `;
 
         return statement;
@@ -123,7 +126,8 @@ class MonthData {
         }, labor_cost = ${this.laborCost}, labor_cost_p = ${this.laborCostP},`;
         statement += ` sampling = ${this.sampling}, overring = ${
         this.overring
-        }, bonus = ${this.bonus}, bonus_dm = ${this.bonusDM}`;
+        }, bonus = ${this.bonus}, bonus_dm = ${this.bonusDM},`;
+        statement += ` month_obj = ${this.objective}`;
         statement += ` WHERE month_data_type = 1`;
         statement += ` AND comp_id = ${this.compId} AND month = ${
         this.month
