@@ -190,6 +190,7 @@ const saveToSQLFile = () => {
 ///////////////////////////////////////////////////////////////
 
 const main = () => {
+    console.log('Try to run script at: ' + new Date());
     let sourceDic, targetDic;
     // Retrieve existing data from target
     setUpdateDepth();
@@ -217,7 +218,7 @@ const main = () => {
             }
             //executeStatement('COMMIT;');
             //saveToSQLFile();
-            console.log('Last run at ' + new Date());
+            console.log('Last successful run at ' + new Date());
         })
         .catch(err => {
             console.log(err);
