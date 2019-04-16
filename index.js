@@ -15,8 +15,8 @@ const MonthData = require('./MonthData');
 ///////////////////////////////////////////////////////////////
 //                       CONSTANTS                           //
 ///////////////////////////////////////////////////////////////
-const INIT_MODE = true;
-const UPDATE_DEPTH = 3; // Update the N last months if data already present
+const INIT_MODE = false;
+const UPDATE_DEPTH = 4; // Update the N last months if data already present
 
 // VARIABLES
 let monthsToUpdate = [];
@@ -168,6 +168,7 @@ const executeStatement = statement => {
 ///////////////////////////////////////////////////////////////
 //                       DEV                                 //
 ///////////////////////////////////////////////////////////////
+/*
 const fs = require('fs');
 let logString = "";
 const saveToLogString = string => {
@@ -183,7 +184,7 @@ const saveToSQLFile = () => {
         console.log("The file was saved!");
     });
 }
-
+*/
 ///////////////////////////////////////////////////////////////
 //                       MAIN                                //
 ///////////////////////////////////////////////////////////////
@@ -216,7 +217,7 @@ const main = () => {
                 executeStatement(statement);
             }
             //executeStatement('COMMIT;');
-            saveToSQLFile();
+            //saveToSQLFile();
         })
         .catch(err => {
             console.log(err);
