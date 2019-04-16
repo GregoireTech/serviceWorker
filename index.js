@@ -95,7 +95,7 @@ const mapData = rawData => {
                 dataObj[item.comp_id][month_year] = 1;
 
             } else {
-                console.log('pb' + item);
+                console.log('pb ' + item);
             }
         } catch (e) {
             console.log(e);
@@ -151,8 +151,8 @@ const compareDics = (dbDic, sourceDic) => {
  * @param {string} statements 
  */
 const executeStatement = statement => {
-    console.log('Executing statement...');
-    console.log(statement);
+    //console.log('Executing statement...');
+    //console.log(statement);
     db.execute(statement)
         .then(result => {
             //console.log(result);
@@ -175,7 +175,6 @@ const saveToLogString = string => {
     logString += string;
     logString += "\n";
 }
-
 const saveToSQLFile = () => {
     fs.writeFile("test.sql", logString, function (err) {
         if (err) {
@@ -184,6 +183,7 @@ const saveToSQLFile = () => {
         console.log("The file was saved!");
     });
 }
+
 */
 ///////////////////////////////////////////////////////////////
 //                       MAIN                                //
@@ -199,9 +199,8 @@ const main = () => {
         .then(data => {
             // Format the result
             const rawData = data[0];
-            console.log(rawData.length);
+            console.log(rawData.length + ' month items retrieved');
             sourceDic = mapData(rawData);
-            console.log(sourceDic[1]['03_2017'])
             // Get snapshot from Target table for comparison
             const targetRequest = targetTableQuery();
             return fetchData(targetRequest);
@@ -213,7 +212,7 @@ const main = () => {
             const requestStatements = compareDics(targetDic, sourceDic);
             // Update the target table
             for (const statement of requestStatements) {
-                saveToLogString(statement);
+                //saveToLogString(statement);
                 executeStatement(statement);
             }
             //executeStatement('COMMIT;');
