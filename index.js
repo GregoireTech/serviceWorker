@@ -217,6 +217,7 @@ const main = () => {
             }
             //executeStatement('COMMIT;');
             //saveToSQLFile();
+            console.log('Last run at ' + new Date());
         })
         .catch(err => {
             console.log(err);
