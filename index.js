@@ -148,11 +148,11 @@ const compareDics = (dbDic, sourceDic) => {
 
 /**
  * Sends a request to the DB with the statements sent in as parameters.
- * @param {string} statements 
+ * @param {string} statement 
  */
 const executeStatement = statement => {
     //console.log('Executing statement...');
-    //console.log(statement);
+    console.log(statement);
     db.execute(statement)
         .then(result => {
             //console.log(result);
