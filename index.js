@@ -6,7 +6,8 @@
 ///////////////////////////////////////////////////////////////
 //                       IMPORTS                             //
 ///////////////////////////////////////////////////////////////
-const db = require("./util/database");
+const sourceDb = require("./util/mysql_db");
+const targetDb = require("./util/postgres_db").dbService;
 const sourceTableQuery = require("./util/query").sourceRequest;
 const targetTableQuery = require("./util/query").targetRequest;
 // Month data Object
@@ -61,7 +62,7 @@ const setUpdateDepth = () => {
  */
 const fetchData = query => {
     return new Promise((resolve, reject) => {
-        db.execute(query)
+        sourceDb.execute(query)
             .then(data => {
                 resolve(data);
             })
@@ -153,7 +154,7 @@ const compareDics = (dbDic, sourceDic) => {
 const executeStatement = statement => {
     //console.log('Executing statement...');
     //console.log(statement);
-    db.execute(statement)
+    sourceDb.execute(statement)
         .then(result => {
             //console.log(result);
         })
@@ -198,26 +199,29 @@ const main = () => {
     const sourceRequest = sourceTableQuery();
     fetchData(sourceRequest)
         .then(data => {
+            // Close the connection to the Source DB
+            sourceDb.end();
             // Format the result
             const rawData = data[0];
             console.log(rawData.length + ' month items retrieved');
             sourceDic = mapData(rawData);
+            // Open connection to Target DB
+            await targetDb.connect();
             // Get snapshot from Target table for comparison
             const targetRequest = targetTableQuery();
-            return fetchData(targetRequest);
-        })
-        .then(data => {
+            const snapshot = await targetDb.rawQuery(targetRequest);
             // Map the retrieved data to a dictionary
-            targetDic = mapData(data[0]);
+            targetDic = mapData(snapshot[0]);
             // Retrieve a list of operations to run
             const requestStatements = compareDics(targetDic, sourceDic);
             // Update the target table
             for (const statement of requestStatements) {
                 //saveToLogString(statement);
-                executeStatement(statement);
+                await targetDb.rawQuery(statement);
             }
             //executeStatement('COMMIT;');
             //saveToSQLFile();
+            await targetDb.disconnect();
             console.log('Last successful run at ' + new Date());
         })
         .catch(err => {
