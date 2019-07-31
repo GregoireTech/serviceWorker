@@ -1,3 +1,5 @@
+const PG = require('pg');
+
     /**
      * Connect to PostgreSQL
      *
@@ -66,11 +68,10 @@
          * Performs raw query on DB for testing purposes
          *
          * @param stmt - SQL statement
-         * @param params - statement's params
          * @returns {Promise<DocumentClient.QueryOutput | DynamoDB.QueryOutput>}
          */
-        async rawQuery(stmt, params) {
-            const result = await this.client.query(stmt, params);
+        async rawQuery(stmt) {
+            const result = await this.client.query(stmt);
             return result;
         }
     

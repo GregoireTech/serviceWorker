@@ -60,7 +60,7 @@ const setUpdateDepth = () => {
  * @param {string} query 
  * @returns {Promise}
  */
-const fetchData = query => {
+const fetchData = async (query) => {
     return new Promise((resolve, reject) => {
         sourceDb.execute(query)
             .then(data => {
@@ -147,23 +147,6 @@ const compareDics = (dbDic, sourceDic) => {
     return resultStatements;
 };
 
-/**
- * Sends a request to the DB with the statements sent in as parameters.
- * @param {string} statements 
- */
-const executeStatement = statement => {
-    //console.log('Executing statement...');
-    //console.log(statement);
-    sourceDb.execute(statement)
-        .then(result => {
-            //console.log(result);
-        })
-        .catch(err => {
-            console.log('ERROR SYNCHRO');
-            console.log(err);
-        });
-}
-
 
 
 ///////////////////////////////////////////////////////////////
@@ -190,43 +173,51 @@ const saveToSQLFile = () => {
 //                       MAIN                                //
 ///////////////////////////////////////////////////////////////
 
-const main = () => {
-    console.log('Try to run script at: ' + new Date());
-    let sourceDic, targetDic;
-    // Retrieve existing data from target
-    setUpdateDepth();
-    //console.log(monthsToUpdate);
-    const sourceRequest = sourceTableQuery();
-    fetchData(sourceRequest)
-        .then(data => {
-            // Close the connection to the Source DB
-            sourceDb.end();
-            // Format the result
-            const rawData = data[0];
-            console.log(rawData.length + ' month items retrieved');
-            sourceDic = mapData(rawData);
-            // Open connection to Target DB
-            await targetDb.connect();
-            // Get snapshot from Target table for comparison
-            const targetRequest = targetTableQuery();
-            const snapshot = await targetDb.rawQuery(targetRequest);
-            // Map the retrieved data to a dictionary
-            targetDic = mapData(snapshot[0]);
-            // Retrieve a list of operations to run
-            const requestStatements = compareDics(targetDic, sourceDic);
-            // Update the target table
-            for (const statement of requestStatements) {
-                //saveToLogString(statement);
-                await targetDb.rawQuery(statement);
-            }
-            //executeStatement('COMMIT;');
-            //saveToSQLFile();
-            await targetDb.disconnect();
-            console.log('Last successful run at ' + new Date());
-        })
-        .catch(err => {
-            console.log(err);
-        });
+const main = async () => {
+    try {
+        console.log('Try to run script at: ' + new Date());
+        let sourceDic, targetDic;
+        setUpdateDepth();
+        // Retrieve existing data from target
+        const sourceRequest = sourceTableQuery();
+        const sourceData = await sourceDb.execute(sourceRequest);
+        // Close the connection to the Source DB
+        await sourceDb.end();
+        // Format the result
+        const rawData = sourceData[0];
+        console.log(rawData.length + ' month items retrieved');
+        sourceDic = mapData(rawData);
+        // Open connection to Target DB
+        await targetDb.connect();
+        console.log('connected to PG');
+        // Get snapshot from Target table for comparison
+        const targetRequest = targetTableQuery();
+        const snapshot = await targetDb.rawQuery(targetRequest);
+        // Map the retrieved data to a dictionary
+        targetDic = mapData(snapshot.rows);
+        // Retrieve a list of operations to run
+        const requestStatements = compareDics(targetDic, sourceDic);
+        // Update the target table
+        let statementsResults = [];
+        for (const statement of requestStatements) {
+            //saveToLogString(statement);
+            const result = await targetDb.rawQuery(statement);
+            statementsResults.push(result);
+        }
+        console.log('results');
+        console.log(statementsResults);
+        //executeStatement('COMMIT;');
+        //saveToSQLFile();
+        await targetDb.disconnect();
+        console.log('------------------ Run succeeded ------------------------');
+        console.log('Last successful run at ' + new Date());
+    } catch(e){
+        console.log('------------------ Run failed, error: ------------------------');
+        console.log(e);
+        await sourceDb.end();
+        await targetDb.disconnect();
+        exit
+    }
 };
 
 main();
