@@ -1,6 +1,10 @@
 const mysql = require('mysql2');
-const keys = require('../keys');
 const PG = require('pg');
+
+let keys = {};
+if (process.env.NODE_ENV !== 'production'){
+    keys = require('../keys');
+}
 
 const pool = mysql.createPool({
     host: process.env['MSQL_HOST'] || keys.MSQL_HOST,
